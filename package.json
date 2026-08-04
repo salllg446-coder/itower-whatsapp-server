@@ -1,0 +1,16 @@
+{
+  "name": "itower-whatsapp-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "@supabase/supabase-js": "^2.45.4",
+    "qrcode": "^1.5.4",
+    "pino": "^9.4.0",
+    "dotenv": "^16.4.5"
+  }
+}

@@ -194,6 +194,10 @@ async function startSessionForUser(userId) {
     if (connection === 'close') {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const loggedOut = statusCode === DisconnectReason.loggedOut;
+      // بعد نجاح مسح QR مباشرة، واتساب يقفل الاتصال عمداً بهذا الكود ويطلب
+      // إعادة اتصال فورية بنفس الاعتماد (creds) - هذا سلوك طبيعي متوقع
+      // بمنتصف عملية الربط، وليس خطأ. يجب عدم عرضه للمستخدم كـ "error".
+      const restartRequired = statusCode === DisconnectReason.restartRequired;
       sessions.delete(userId);
 
       if (loggedOut) {
@@ -204,8 +208,13 @@ async function startSessionForUser(userId) {
           qr_base64: null,
           linked_phone: null,
         });
+      } else if (restartRequired) {
+        // إعادة اتصال متوقعة أثناء عملية الربط نفسها - نعيد المحاولة فوراً
+        // بدون كتابة status: 'error' حتى لا تظهر شاشة خطأ مضللة بالتطبيق
+        logger.info({ userId }, 'إعادة اتصال مطلوبة بعد نجاح مسح QR (515) - إعادة محاولة فورية');
+        startSessionForUser(userId);
       } else {
-        // انقطاع مؤقت (شبكة، أو إعادة تشغيل الحاوية) - بيانات الجلسة محفوظة
+        // انقطاع مؤقت فعلي (شبكة، أو إعادة تشغيل الحاوية) - بيانات الجلسة محفوظة
         // في Supabase، فإعادة المحاولة تستأنف بدون طلب مسح QR من جديد
         await updateSessionRow(userId, {
           status: 'error',
@@ -363,4 +372,3 @@ setInterval(pollForLinkRequests, pollIntervalMs);
 setInterval(processAllQueues, pollIntervalMs);
 
 logger.info('itower-whatsapp-server started');
-

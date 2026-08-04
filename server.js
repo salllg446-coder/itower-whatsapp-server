@@ -177,6 +177,8 @@ async function startSessionForUser(userId) {
         qr_base64: qrBase64,
         last_error: null,
       });
+      // لوق تشخيصي مؤقت: نحتاج نعرف كم مرة يتغيّر QR وكل قد ايش يبقى الاتصال حياً
+      logger.info({ userId }, 'تم توليد/تحديث رمز QR جديد');
     }
 
     if (connection === 'open') {
@@ -199,6 +201,18 @@ async function startSessionForUser(userId) {
       // بمنتصف عملية الربط، وليس خطأ. يجب عدم عرضه للمستخدم كـ "error".
       const restartRequired = statusCode === DisconnectReason.restartRequired;
       sessions.delete(userId);
+
+      // لوق تشخيصي مؤقت: نحتاج نعرف statusCode الفعلي وسبب الإغلاق بدقة
+      logger.warn(
+        {
+          userId,
+          statusCode,
+          errorMessage: lastDisconnect?.error?.message,
+          loggedOut,
+          restartRequired,
+        },
+        'اتصال واتساب أُغلق',
+      );
 
       if (loggedOut) {
         // المستخدم فصل الجهاز من واتساب نفسه - يحتاج مسح QR من جديد

@@ -1,0 +1,19 @@
+name: keep-alive-ping
+
+# يستدعي نقطة /ping في الخادم كل 10 دقائق لمنع دخول حاوية SnapDeploy المجانية
+# بوضع النوم (idle timeout الفعلي 15 دقيقة). الفاصل هنا أقل من نصف مهلة النوم
+# عمداً، لأن جدولة GitHub Actions (cron) غير دقيقة بالضبط وقد تتأخر بضع دقائق
+# عن الوقت المحدد، خصوصاً بأوقات الازدحام - فلازم هامش أمان كافٍ.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping server to prevent idle sleep
+        run: |
+          curl -fsS --max-time 15 "${{ secrets.PING_URL }}/ping" || echo "ping failed - server may be restarting"

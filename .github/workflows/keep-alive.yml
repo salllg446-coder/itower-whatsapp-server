@@ -16,4 +16,4 @@ jobs:
     steps:
       - name: Ping server to prevent idle sleep
         run: |
-          curl -fsS --max-time 15 "https://itower-whatsapp-6f07b.containers.snapdeploy.app/ping" || echo "ping failed - server may be restarting"
+         curl -fsS --max-time 15 "https://itower-whatsapp-6f07b.containers.snapdeploy.app/ping" || echo "ping failed - server may be restarting"
